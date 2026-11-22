@@ -8065,7 +8065,10 @@ function portalServiceCall(method, params, done, customTimeout) {
       resetMediaSelection();
       restoreSmoothMode(item);
     }
-    ensureMediaInfo(item);
+    // Direct playback gets track metadata in the stream response.
+    if (!window.XUPER_DESKTOP || !item._portal || floating || state.streamMode !== 'normal') {
+      ensureMediaInfo(item);
+    }
 
     buildDetail(item);
     showScreen('detail');
@@ -14541,6 +14544,9 @@ function portalServiceCall(method, params, done, customTimeout) {
             autoSmoothFallbackKey = hevcKey;
             /* Remembered for this title (whole series) during the session, so
                an audio change or the next episode does not go back to Directo. */
+            if (payload.audio) {
+              (state.playerEpisode || item).streamAudioInfo = payload.audio;
+            }
             setSmoothMode(item, true);
             setPlayerStatus('Este equipo no reproduce HEVC en Directo: usando Modo fluido…');
             versionFallback.pending = true;   // same attempt, not a new chain
@@ -14681,7 +14687,8 @@ function portalServiceCall(method, params, done, customTimeout) {
     var epKey = (currentEp && currentEp.id) || (it && it.id) || '';
     var epInfo = epKey ? mediaInfoCache[epKey] : null;
     var knownAudio = (epInfo && epInfo.audio) || (currentEp && currentEp.streamAudioInfo) || '';
-    if (it._portal && !vodAudioChosen && !knownAudio) {
+    var needsAudioBeforeResolve = !window.XUPER_DESKTOP || state.streamMode !== 'normal';
+    if (it._portal && needsAudioBeforeResolve && !vodAudioChosen && !knownAudio) {
       var started = false;
       var startSeq = resolveSeq;
       var proceed = function () {
