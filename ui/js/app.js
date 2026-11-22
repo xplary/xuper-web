@@ -363,6 +363,7 @@
     for (var n = 0; n < catalogItems.length; n++) {
       VOD.push(catalogItems[n]);
     }
+    document.dispatchEvent(new Event('xuper:catalog-updated'));
     if (state.detail) {
       var foundDetail = false;
       for (var d = 0; d < VOD.length; d++) {
@@ -890,6 +891,12 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   var catalogRetryTimer;
+  var catalogRetryDelay = 5000;
+  function resumeCatalog() {
+    if (portalState.error && !document.hidden && navigator.onLine !== false) refreshPortalCatalog();
+  }
+  window.addEventListener('online', resumeCatalog);
+  document.addEventListener('visibilitychange', resumeCatalog);
   function refreshPortalCatalog() {
     if (portalState.refreshing) { return; }
     clearTimeout(catalogRetryTimer);
@@ -902,8 +909,9 @@ function portalServiceCall(method, params, done, customTimeout) {
       if (index >= PORTAL_ROOTS.length) {
         portalState.refreshing = false;
         if (portalState.error || !portalState.roots) {
-          catalogRetryTimer = setTimeout(refreshPortalCatalog, 60000);
-        }
+          catalogRetryTimer = setTimeout(refreshPortalCatalog, catalogRetryDelay);
+          catalogRetryDelay = Math.min(60000, catalogRetryDelay * 2);
+        } else { catalogRetryDelay = 5000; }
         if (portalState.roots > 0) {
           portalState.lastSync = Date.now();
           applyPortalRefresh(fresh);
