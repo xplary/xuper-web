@@ -17,7 +17,7 @@ const vpn = process.env.XUPER_EGRESS ? process.env.XUPER_EGRESS === 'wireguard'
 const secret = process.env.XUPER_REGIONAL_SECRET || (vpn ? crypto.randomBytes(32).toString('hex') : '');
 const countries = new Set((process.env.XUPER_COUNTRIES || 'PE').split(',').map(s => s.trim().toUpperCase()));
 const workers = new Map();
-const maxSessions = Number(process.env.XUPER_MAX_SESSIONS || 2);
+const maxSessions = Number(process.env.XUPER_MAX_SESSIONS || 3);
 if ((regionalRole || vpn) && (!Number.isSafeInteger(maxSessions) || maxSessions < 1 || secret.length < 32))
   throw new Error('Revisa XUPER_MAX_SESSIONS y XUPER_REGIONAL_SECRET (mínimo 32 caracteres).');
 

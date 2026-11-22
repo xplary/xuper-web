@@ -4,7 +4,7 @@ La dirección pública sigue siendo la del servicio en Render. Cada petición a 
 
 ## Opción con VPN dentro de Render
 
-Para el perfil de México, guarda el contenido original descargado como archivo secreto `wireguard.conf` en Render y despliega. El contenedor detecta el archivo, añade el listener SOCKS5 desde `wireproxy.ini` y usa los valores predeterminados MX para la salida, PE para visitantes y dos sesiones. Las variables configuradas explícitamente en el panel tienen prioridad. Si tenías `XUPER_EXIT_COUNTRY=PE`, cámbiala a `MX`. Renueva el archivo secreto cuando venza el perfil y vuelve a desplegar. Para una configuración manual con otro país, sigue los pasos siguientes.
+Para el perfil de México, guarda el contenido original descargado como archivo secreto `wireguard.conf` en Render y despliega. El contenedor detecta el archivo, añade el listener SOCKS5 desde `wireproxy.ini` y usa los valores predeterminados MX para la salida, PE para visitantes y tres sesiones. Las variables configuradas explícitamente en el panel tienen prioridad. Si tenías `XUPER_EXIT_COUNTRY=PE`, cámbiala a `MX`. Renueva el archivo secreto cuando venza el perfil y vuelve a desplegar. Para una configuración manual con otro país, sigue los pasos siguientes.
 
 Esta opción usa solo la instancia de Render y un servicio WireGuard con una salida regional admitida por el proveedor. El operador de la VPN debe proporcionar una configuración WireGuard exportable, permitir tráfico desde servidores y admitir el volumen de vídeo previsto. El país de salida y los países de los visitantes se configuran por separado.
 
@@ -16,7 +16,7 @@ Esta opción usa solo la instancia de Render y un servicio WireGuard con una sal
    BindAddress = 127.0.0.1:1080
    ```
 
-3. Configura `XUPER_EGRESS=wireguard`, `XUPER_EXIT_COUNTRY=PE`, `XUPER_COUNTRIES=PE` y `XUPER_MAX_SESSIONS=2`. Cambia el país de salida solo para un endpoint de ese país aceptado por el proveedor. Deja `XUPER_ROLE` sin definir. El modo VPN genera su propia clave temporal de cookies y prescinde del servidor regional separado.
+3. Configura `XUPER_EGRESS=wireguard`, `XUPER_EXIT_COUNTRY=PE`, `XUPER_COUNTRIES=PE` y `XUPER_MAX_SESSIONS=3`. Cambia el país de salida solo para un endpoint de ese país aceptado por el proveedor. Deja `XUPER_ROLE` sin definir. El modo VPN genera su propia clave temporal de cookies y prescinde del servidor regional separado.
 4. Guarda y despliega. El cliente wireproxy usa el archivo en `/etc/secrets/wireproxy.conf`. Los procesos de catálogo y FFmpeg envían sus conexiones TCP externas por el proxy local. Cada reproductor comprueba el país de salida antes de atender la primera petición. La conexión UDP al endpoint VPN y el reconocimiento del país por el proveedor se deben verificar en el despliegue real.
 5. Desde Perú, comprueba un catálogo actualizado y una reproducción real. Si aparece 503, revisa **Logs** de Render para distinguir un fallo de arranque del túnel de un país de salida incorrecto. Un bloqueo del proveedor tras esta comprobación significa que debes confirmar con él si admite esa IP.
 
@@ -32,7 +32,7 @@ En un clon privado del repositorio, genera un secreto con `openssl rand -hex 32`
 XUPER_ROLE=regional
 XUPER_PUBLIC_ORIGIN=https://xuper-web.onrender.com
 XUPER_REGIONAL_SECRET=REEMPLAZAR_CON_EL_SECRETO_GENERADO
-XUPER_MAX_SESSIONS=2
+XUPER_MAX_SESSIONS=3
 PORT=8080
 ```
 
