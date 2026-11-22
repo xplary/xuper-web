@@ -6588,7 +6588,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function borrowPlayerIntoHome() {
-    if (!window.XUPER_DESKTOP || !liveMain || liveHandoff || !playerIsPlayingLive()) { return false; }
+    if ((window.desktop && window.desktop.playbackOnDemand) || !window.XUPER_DESKTOP || !liveMain || liveHandoff || !playerIsPlayingLive()) { return false; }
     stopLivePreview();
     liveMain.insertBefore(playerVideo, liveMain.firstChild);
     playerVideo.classList.add('is-handoff-home');
@@ -6836,6 +6836,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function scheduleLivePreview(ch) {
+    if (window.desktop && window.desktop.playbackOnDemand) { return; }
     if (livePreviewTimer) { clearTimeout(livePreviewTimer); }
     livePreviewTimer = setTimeout(function () {
       livePreviewTimer = null;
@@ -7308,7 +7309,8 @@ function portalServiceCall(method, params, done, customTimeout) {
         startLiveChannel(CHANNELS[index], !!immediate);
       }
     } else if (state.screen === 'home' && onTvTab()) {
-      scheduleLivePreview(CHANNELS[index]);
+      if (immediate && window.desktop && window.desktop.playbackOnDemand) { startLivePreview(CHANNELS[index]); }
+      else { scheduleLivePreview(CHANNELS[index]); }
     }
   }
 
@@ -8516,7 +8518,7 @@ function portalServiceCall(method, params, done, customTimeout) {
                   state.detailEpisode = item.episodes[0] || null;
                 }
                 buildDetail(item);
-                if (state.detailEpisode) {
+                if (state.detailEpisode && autoPreviewAllowed(item)) {
                   startPlayerVideo(item, state.detailEpisode);
                 }
                 var sBtn = detailBottom ? detailBottom.querySelector('.detail-season') : null;
@@ -14916,7 +14918,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var sameItem = state.playerItem === item ||
       !!(state.playerItem && item && state.playerItem.id && String(state.playerItem.id) === String(item.id));
     var keepCurrentVideo = state.screen === 'detail' && playerVideo &&
-      !!playerVideo.src && sameItem && sameEpisode;
+      !!playerVideo.getAttribute('src') && sameItem && sameEpisode;
     state.playerMode = 'vod';
     applyModeAspect();
     if (item && !sameItem) { resetMediaSelection(); }
@@ -15204,6 +15206,11 @@ function portalServiceCall(method, params, done, customTimeout) {
       if (scrDetail) {
         scrDetail.classList.add('is-active');
       }
+      if (window.desktop && window.desktop.playbackOnDemand && !keepFloatingVideo()) {
+        stopPlayerVideo();
+        resumeDecidedKey = '';
+        if (detailPlayer) { detailPlayer.classList.remove('is-playing'); }
+      }
       state.screen = 'detail';
       var rebuiltDetail = false;
       if (state.detailNeedsRebuild && state.detail) {
@@ -15366,6 +15373,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function autoPreviewAllowed(item) {
+    if (window.desktop && window.desktop.playbackOnDemand) { return false; }
     if (!document.pictureInPictureElement || !playerVideo) { return true; }
     return !state.playerItem || state.playerItem === item;
   }

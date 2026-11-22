@@ -92,7 +92,18 @@ const server = http.createServer(async (req, res) => {
     }
     if (!['GET','HEAD'].includes(req.method)) return fail(405);
     const file = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
-    if (!file.startsWith(root + path.sep) || !(await fs.promises.stat(file)).isFile()) return fail(404);
+    if (!file.startsWith(root + path.sep)) return fail(404);
+    const stat = await fs.promises.stat(file);
+    if (!stat.isFile()) return fail(404);
+    // Revalidate bundled assets on each visit so deployments take effect immediately.
+    // HTML bootstraps the session cookie and keeps its no-store policy.
+    if (publicOrigin && types[path.extname(file)] && path.extname(file) !== '.html') {
+      const version = process.env.RENDER_GIT_COMMIT || stat.mtimeMs;
+      const tag = 'W/"' + version + '-' + stat.size + '"';
+      res.setHeader('Cache-Control', 'private, no-cache');
+      res.setHeader('ETag', tag);
+      if (req.headers['if-none-match'] === tag) return res.writeHead(304).end();
+    }
     res.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
     if (req.method === 'HEAD') return res.end();
     await pipeline(fs.createReadStream(file), res);

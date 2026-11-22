@@ -2,6 +2,7 @@
 let restoringSession;
 window.desktop = {
   browserFullscreen: true,
+  playbackOnDemand: location.protocol === 'https:',
   async service(method, parameters = {}, retried = false) {
     const response = await fetch('/api/' + encodeURIComponent(method), {
       method: 'POST',
