@@ -39,6 +39,14 @@
 .mobile-menu #mobile-home,#screen-home:not(.mobile-menu) #mobile-return {display:none}
 #mobile-return {position:absolute;right:20px;top:16px;z-index:50;font-size:42px}
 #screen-detail.is-active {overflow:auto;box-sizing:border-box;padding:60px 16px 24px}
+.desktop #app:has(#screen-home.is-active:not(.mobile-menu)) #desktop-back:disabled {display:none}
+.desktop #app:is(:has(#screen-home.is-active:not(.mobile-menu)),:has(#screen-detail.is-active)) :is(#desktop-back,#desktop-history) {
+  top:max(6px,env(safe-area-inset-top));height:44px;width:auto;font-size:15px;padding:0 14px;gap:6px;
+}
+.desktop #app:is(:has(#screen-home.is-active:not(.mobile-menu)),:has(#screen-detail.is-active)) #desktop-history {left:auto;right:max(12px,env(safe-area-inset-right))}
+.desktop #app:is(:has(#screen-home.is-active:not(.mobile-menu)),:has(#screen-detail.is-active)) #desktop-back {left:max(12px,env(safe-area-inset-left))}
+#mobile-home {top:calc(max(6px,env(safe-area-inset-top)) + 48px)}
+#screen-detail.is-active {top:calc(max(6px,env(safe-area-inset-top)) + 48px);height:calc(100% - max(6px,env(safe-area-inset-top)) - 48px);padding-top:12px}
 .desktop #screen-detail :is(.detail-left,.detail-player,.detail-buttons,.detail-bottom) {position:relative;inset:auto;width:100%;height:auto;max-height:none;margin:0 0 16px;box-sizing:border-box}
 .desktop #screen-detail .detail-player {aspect-ratio:16/9}
 .desktop #screen-detail .detail-title {font-size:26px;line-height:1.15;white-space:normal}

@@ -3629,3 +3629,8 @@ html.is-net-offline .notify-wifi .wifi-slash { display: inline; }
 .desktop .home-tabs .tab-item .tab-icon { top: 10px; }
 .desktop .home-tabs .tab-mini { top: 48px; }
 .desktop .home-tabs .tab-item.is-focused .tab-pill { top: 1px; height: 76px; }
+@media (pointer: fine) {
+  html:fullscreen #player-stage.is-vod #player-video.aspect-cover {
+    object-fit: contain;
+  }
+}

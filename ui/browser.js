@@ -1,6 +1,7 @@
 'use strict';
 let restoringSession;
 window.desktop = {
+  browserFullscreen: true,
   async service(method, parameters = {}, retried = false) {
     const response = await fetch('/api/' + encodeURIComponent(method), {
       method: 'POST',

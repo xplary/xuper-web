@@ -15265,7 +15265,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     /* Only trust screen.* when it is a true UHD/4K panel (>= 2560).
        Never override an HD/720p viewport (1280×720) with a virtual 1920 panel,
        which would force scale=1.0 and crop 640px on the right and 360px on the bottom. */
-    if (panelW >= 2560 && panelW >= vw * 1.25 && panelH >= vh * 1.25 &&
+    if (!document.fullscreenElement && panelW >= 2560 && panelW >= vw * 1.25 && panelH >= vh * 1.25 &&
         Math.abs(cssRatio - panelRatio) < 0.03) {
       vw = panelW;
       vh = panelH;
@@ -15711,6 +15711,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     return url.indexOf(location.origin + '/reproducir/relay/s/') === 0 || /^http:\/\/127\.0\.0\.1:\d+\/s\//.test(url);
   }
   function isWindowFullscreen() {
+    if (window.desktop && window.desktop.browserFullscreen) return !!document.fullscreenElement;
     return Math.abs(window.outerWidth - screen.width) < 3 && Math.abs(window.outerHeight - screen.height) < 3;
   }
   function setWindowFullscreen(on) {
@@ -16200,6 +16201,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   function boot() {
     fitDesignViewport();
     window.addEventListener('resize', fitDesignViewport, false);
+    document.addEventListener('fullscreenchange', function () { requestAnimationFrame(fitDesignViewport); });
     window.addEventListener('orientationchange', fitDesignViewport, false);
     document.addEventListener('visibilitychange', fitDesignViewport, false);
     /* Some webOS builds only report the final window size after the splash
