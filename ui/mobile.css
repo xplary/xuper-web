@@ -25,6 +25,13 @@
 #mobile-home nav button {border-radius:24px;padding-inline:16px;font-weight:600}
 #mobile-home nav button[aria-pressed=true] {background:#f8ece6;color:#241413}
 .mobile-total {font-size:13px;color:#bebeca}
+#mobile-home nav {overflow:auto;scrollbar-width:none;position:sticky;top:0;z-index:3;background:#111116;padding:8px 0}
+#mobile-home nav button {flex:none;font-size:14px}
+.mobile-shelves h2 {margin:22px 0 10px;font-size:20px;letter-spacing:-.5px}
+.mobile-rail {display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px;scrollbar-width:thin}
+#mobile-home .mobile-rail button {flex:0 0 29%;padding:0;align-self:flex-start;background:transparent;text-align:left;font-weight:650;font-size:14px;scroll-snap-align:start}
+.mobile-rail img {display:block;width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:10px;background:#24242e;margin-bottom:6px}
+.mobile-shelves:not(:empty) {margin-bottom:24px}
 .mobile-grid {margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(min(104px,30%),1fr))}
 .mobile-grid button {min-width:0;content-visibility:auto;contain-intrinsic-size:auto 200px}
 .mobile-grid img {display:block;margin-bottom:6px;border-radius:9px}

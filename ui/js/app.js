@@ -6986,6 +6986,7 @@ function portalServiceCall(method, params, done, customTimeout) {
             }
           }
           liveChannelsLoaded = true;
+          document.dispatchEvent(new Event('xuper:channels-updated'));
           /* Primer arranque: se busca el último canal visto según llegan las páginas. */
           var waitingLast = false;
           if (pendingLastChannel) {
@@ -7773,6 +7774,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   var rankWarmSeq = 0;
   var rankPrefetch = [];
   function rankPagesChanged() {
+    document.dispatchEvent(new Event('xuper:ranks-updated'));
     for (var i = 0; i < RANK_PAGES.length; i++) { pagesDirty[RANK_PAGES[i]] = true; }
     rebuildDirtyPage(TABS[state.tab] ? TABS[state.tab].page : -1, false);
   }
@@ -16259,6 +16261,21 @@ function portalServiceCall(method, params, done, customTimeout) {
       },
       selectTab: function (i) { finishWelcome(); selectTab(i, true); },
       openDetail: function (i) { openDetail(VOD[i] || VOD[0]); },
+      catalogTools: {
+        normalize: normalizeVod, text: norm, isSeries: isSeriesItem, open: openDetail,
+        topMovies: topMovieItems, topSeries: topSeriesItems, newest: newestItems,
+        section: function (label) {
+          if (label === 'Películas') return rootVodItems('movies','pelicula');
+          if (label === 'Series') return rootVodItems('series','serie');
+          if (label === 'Anime') return allVodFor('anime');
+          if (label === 'Infantil') return rootVodItems('kids','infantil');
+          return VOD;
+        },
+        tune: function (channel) {
+          var index = CHANNELS.indexOf(channel);
+          if (index >= 0) { setChannel(index, false); openPlayer('live'); }
+        }
+      },
       openSearch: openSearch,
       openSettings: openSettings,
       openPlayer: function (mode, i) { openPlayer(mode || 'live', VOD[i] || null); },
