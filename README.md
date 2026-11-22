@@ -10,6 +10,15 @@ Explora películas, series y canales en vivo desde el navegador de tu celular o 
 
 **[Entrar a Xuper Web](https://xuper-web.onrender.com/)**
 
+## Características
+
+- **0 publicidad de la app.** Xuper Web no añade anuncios al catálogo ni interrumpe la reproducción con pausas publicitarias.
+- **Sin descargas ni instalaciones.** Abre el enlace y reproduce desde el navegador de tu celular o computadora.
+- **Películas, series y TV en vivo.** Encuentra títulos con el buscador, descubre los más vistos en el Top 10 o elige un canal en vivo.
+- **Temporadas y capítulos.** Elige el episodio que quieres ver desde la ficha de cada serie.
+- **Favoritos e historial.** Guarda títulos para después y continúa una película o un capítulo desde donde lo dejaste en ese navegador.
+- **Audio y subtítulos.** Elige entre los idiomas y subtítulos disponibles para cada título.
+
 ## Cómo usar la web
 
 1. Abre el enlace y espera a que aparezca el catálogo.
