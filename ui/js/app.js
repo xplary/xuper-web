@@ -889,8 +889,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (records.length) { replaceVod(records, 'portal', true); }
   }
 
+  var catalogRetryTimer;
   function refreshPortalCatalog() {
     if (portalState.refreshing) { return; }
+    clearTimeout(catalogRetryTimer);
     portalState.refreshing = true;
     portalState.error = null;
     portalState.roots = 0;
@@ -899,6 +901,9 @@ function portalServiceCall(method, params, done, customTimeout) {
     function next() {
       if (index >= PORTAL_ROOTS.length) {
         portalState.refreshing = false;
+        if (portalState.error || !portalState.roots) {
+          catalogRetryTimer = setTimeout(refreshPortalCatalog, 60000);
+        }
         if (portalState.roots > 0) {
           portalState.lastSync = Date.now();
           applyPortalRefresh(fresh);

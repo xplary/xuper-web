@@ -14,7 +14,7 @@
         if (!self.cancelled && self.onservicecallback) self.onservicecallback(JSON.stringify(result));
       }).catch(function () {
         if (!self.cancelled && self.onservicecallback) self.onservicecallback(JSON.stringify({
-          returnValue: false, errorText: 'No se pudo contactar con el servicio local de Windows'
+          returnValue: false, errorText: 'El navegador perdió la conexión con Xuper Web'
         }));
       });
     };
@@ -82,7 +82,7 @@
       var text, cls;
       var net = window.__xuperNet;
       if (net && !net.online) { text = 'Sin internet · usando el catálogo guardado'; cls = 'is-bad'; }
-      else if (app.portal && app.portal.error) { text = 'Catálogo guardado · el servidor no responde'; cls = 'is-bad'; }
+      else if (app.portal && app.portal.error) { text = 'Catálogo · ' + String(app.portal.error).slice(0, 160); cls = 'is-bad'; }
       else if (app.portal && app.portal.lastSync) { text = 'Catálogo actualizado'; cls = 'is-ok'; }
       else { text = 'Conectando…'; cls = 'is-wait'; }
       badge.textContent = text;

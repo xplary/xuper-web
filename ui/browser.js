@@ -6,7 +6,11 @@ window.desktop = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(parameters)
     });
-    if (!response.ok) throw new Error('Servicio web no disponible');
+    if (!response.ok) {
+      const plain = (response.headers.get('content-type') || '').startsWith('text/plain');
+      const detail = plain && (await response.text()).trim().slice(0, 150);
+      return {returnValue: false, errorText: detail || 'Error HTTP ' + response.status};
+    }
     return response.json();
   },
   fullscreen() {

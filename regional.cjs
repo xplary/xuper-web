@@ -113,9 +113,16 @@ function publicAddress() {
   return regionalRole ? process.env.XUPER_PUBLIC_ORIGIN : process.env.RENDER_EXTERNAL_URL;
 }
 async function serveSession(req,res,url,id) {
+  // Catalogue and liveness requests never allocate a personal player.
+  const shared = /^\/api\/(ping|heartbeat|keepAlive|home|search|detail|audioInfo|liveChannels|liveCategories|radioStations)$/.test(url.pathname)
+    || url.pathname.startsWith('/reproducir/proxy/radio/');
+  if (shared) id = 'catalogue';
   let entry = workers.get(id);
   if (!entry && !url.pathname.startsWith('/api/')) return error(res,410,'La sesión ha caducado.');
-  if (!entry && workers.size >= maxSessions) return error(res,503,'Capacidad ocupada. Intenta más tarde.');
+  const players = workers.size - Number(workers.has('catalogue'));
+  if (!shared && !entry && !['/api/resolve','/api/resolveLive','/api/resolveSmooth'].includes(url.pathname))
+    return error(res,403,'Operación sin una reproducción activa.');
+  if (!shared && !entry && players >= maxSessions) return error(res,503,'Los reproductores están ocupados. Intenta más tarde.');
   entry ||= startWorker(id);
   entry.busy++;
   res.once('close',()=>{entry.busy--;entry.last=Date.now();});
