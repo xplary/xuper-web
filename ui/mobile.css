@@ -52,3 +52,61 @@
 .desktop #screen-detail .detail-title {font-size:26px;line-height:1.15;white-space:normal}
 .desktop #screen-detail .detail-buttons {display:flex;flex-wrap:wrap;gap:8px}
 .desktop #screen-detail .detail-buttons > * {position:relative;inset:auto;font-size:16px;min-height:44px;max-width:100%}
+
+/* The compact catalog owns its header; the full menu keeps its own chrome. */
+#screen-home:has(#mobile-home):not(.mobile-menu) {
+  background:#111116;
+}
+#screen-home:has(#mobile-home):not(.mobile-menu) > :not(#mobile-home) {display:none}
+
+.desktop #screen-detail.is-active {
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  overflow-x:hidden;
+  padding:8px 14px max(24px,env(safe-area-inset-bottom));
+}
+.desktop #screen-detail.is-active > div {flex:none;margin:0;min-width:0}
+.desktop #screen-detail #detail-player {order:-1;aspect-ratio:16/9;border-radius:14px}
+.desktop #app:has(#screen-detail.is-active) #screen-player.is-mini {
+  inset:0;width:100%;height:100%;
+  clip-path:inset(calc(max(6px,env(safe-area-inset-top)) + 48px) 0 0);
+}
+.desktop #screen-player.is-mini .player-stage {
+  left:var(--preview-left);top:var(--preview-top);width:var(--preview-width);
+  height:auto;aspect-ratio:16/9;border-radius:14px;box-shadow:none;
+}
+.desktop #screen-player.is-mini :is(.player-frame,.player-video) {width:100%;height:100%}
+.desktop #screen-detail .detail-left {gap:8px;overflow:visible}
+.desktop #screen-detail .detail-titlewrap {gap:8px}
+.desktop #screen-detail .detail-title {min-width:0;overflow-wrap:anywhere}
+.desktop #screen-detail :is(.detail-meta,.detail-row,.detail-update,.detail-score,.chip,.dd-count) {font-size:14px}
+.desktop #screen-detail .detail-row {white-space:normal}
+.desktop #screen-detail .detail-synopsis .text {font-size:16px;line-height:1.5}
+.desktop #screen-detail .detail-more {font-size:15px;min-height:44px}
+.desktop #screen-detail.is-synopsis-open .detail-synopsis {
+  position:static;transform:none;width:auto;max-height:none;padding:0;border:0;
+  background:transparent;box-shadow:none;animation:none;
+}
+.desktop #screen-detail.is-synopsis-open .detail-more {position:static;margin-top:8px}
+.desktop #screen-detail .detail-btn {height:46px;padding:0 12px;gap:6px}
+.desktop #screen-detail .detail-btn span {font-size:15px}
+.desktop #screen-detail .detail-btn-icon {width:18px;height:18px}
+.desktop #screen-detail .detail-bottom.dd-flow {padding:0;overflow:visible;mask-image:none}
+.desktop #screen-detail .dd-head {flex-wrap:wrap;gap:8px}
+.desktop #screen-detail .dd-title {font-size:20px}
+.desktop #screen-detail .dd-flow .detail-season .season-text {font-size:15px}
+.desktop #screen-detail .season-popup {
+  left:0!important;width:min(100%,320px)!important;max-height:45vh!important;
+  overflow-y:auto;box-sizing:border-box;
+}
+.desktop #screen-detail .season-popup.is-grid {grid-template-columns:repeat(auto-fit,minmax(44px,1fr))}
+.desktop #screen-detail .dd-ranges .detail-range {display:grid;place-items:center;min-height:44px;box-sizing:border-box;font-size:15px}
+.desktop #screen-detail .dd-grid {grid-template-columns:1fr;gap:8px}
+.desktop #screen-detail .detail-episode {height:60px;gap:10px}
+.desktop #screen-detail .ep-num {flex-basis:52px;font-size:20px}
+.desktop #screen-detail .ep-title {font-size:16px}
+.desktop #screen-detail .ep-play {opacity:1;transform:none}
+.desktop #screen-detail .dd-related {gap:12px}
+.desktop #screen-detail .dd-related .cell {flex:0 0 108px;width:108px}
+.desktop #screen-detail .dd-related .poster {width:108px!important;height:158px!important}

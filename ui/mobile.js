@@ -3,6 +3,26 @@
   function mount() {
     if (!phone.matches || document.querySelector('#mobile-home')) return;
     const home = document.querySelector('#screen-home');
+    const detail = document.querySelector('#screen-detail');
+    const preview = document.querySelector('#detail-player');
+    const player = document.querySelector('#screen-player');
+    // The video layer is a sibling of the scrolling detail screen.
+    function alignPreview() {
+      if (!phone.matches || !detail.classList.contains('is-active')) return;
+      const box = preview.getBoundingClientRect();
+      player.style.setProperty('--preview-top', box.top + 'px');
+      player.style.setProperty('--preview-left', box.left + 'px');
+      player.style.setProperty('--preview-width', box.width + 'px');
+    }
+    detail.addEventListener('scroll', alignPreview, {passive:true});
+    new ResizeObserver(alignPreview).observe(preview);
+    let lastTitle;
+    new MutationObserver(() => {
+      const title = detail.querySelector('.detail-title')?.textContent;
+      if (title !== lastTitle) detail.scrollTop = 0;
+      lastTitle = title;
+      alignPreview();
+    }).observe(detail.querySelector('#detail-left'), {childList:true, subtree:true});
     const view = document.createElement('section');
     view.id = 'mobile-home';
     view.innerHTML = '<header><strong>Xuper</strong><button type="button">Menú completo</button></header><p role="status"></p><button class="mobile-feature" type="button"><img alt=""><b></b></button><input type="search" placeholder="Buscar una película o serie" aria-label="Buscar en el catálogo"><nav aria-label="Tipo de contenido"></nav><div class="mobile-total"></div><div class="mobile-grid"></div>';
