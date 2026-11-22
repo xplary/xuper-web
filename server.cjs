@@ -10,6 +10,7 @@ const firstPort = Number(process.env.PORT || 4173);
 let port = firstPort;
 const publicUrl = process.env.RENDER_EXTERNAL_URL;
 const publicOrigin = publicUrl && new URL(publicUrl).origin;
+const assetVersion = /^[a-f\d]{40}$/i.test(process.env.RENDER_GIT_COMMIT || '') ? process.env.RENDER_GIT_COMMIT : '';
 const gatewayRole = !!publicOrigin && !workerRole && !regionalRole;
 const host = gatewayRole || regionalRole ? '0.0.0.0' : '127.0.0.1';
 if (publicOrigin && !publicOrigin.startsWith('https://')) throw new Error('Configura HTTPS.');
@@ -95,12 +96,20 @@ const server = http.createServer(async (req, res) => {
     if (!file.startsWith(root + path.sep)) return fail(404);
     const stat = await fs.promises.stat(file);
     if (!stat.isFile()) return fail(404);
-    // Revalidate bundled assets on each visit so deployments take effect immediately.
-    // HTML bootstraps the session cookie and keeps its no-store policy.
+    // A fresh HTML document points to this deployment's CSS and scripts.
+    if (publicOrigin && assetVersion && file === path.join(root, 'index.html')) {
+      res.setHeader('Content-Type', types['.html']);
+      if (req.method === 'HEAD') return res.end();
+      const html = await fs.promises.readFile(file, 'utf8');
+      return res.end(html.replace(/\b(src|href)="([\w./-]+\.(?:js|css))"/g, '$1="$2?v=' + assetVersion + '"'));
+    }
     if (publicOrigin && types[path.extname(file)] && path.extname(file) !== '.html') {
       const version = process.env.RENDER_GIT_COMMIT || stat.mtimeMs;
       const tag = 'W/"' + version + '-' + stat.size + '"';
-      res.setHeader('Cache-Control', 'private, no-cache');
+      const versioned = assetVersion && url.searchParams.get('v') === assetVersion;
+      const artwork = /\.(?:png|webp|jpe?g|gif|svg|ico|woff2?)$/i.test(file);
+      res.setHeader('Cache-Control', versioned ? 'private, max-age=31536000, immutable' :
+        artwork ? 'private, max-age=3600' : 'private, no-cache');
       res.setHeader('ETag', tag);
       if (req.headers['if-none-match'] === tag) return res.writeHead(304).end();
     }
