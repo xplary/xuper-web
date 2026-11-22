@@ -3,18 +3,20 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pipeline } = require('node:stream/promises');
+const { regionalRole, workerRole, regional, gateway, verifyExit } = require('./regional.cjs');
 
 const root = path.join(__dirname, 'ui');
 const firstPort = Number(process.env.PORT || 4173);
 let port = firstPort;
 const publicUrl = process.env.RENDER_EXTERNAL_URL;
 const publicOrigin = publicUrl && new URL(publicUrl).origin;
-const host = publicOrigin ? '0.0.0.0' : '127.0.0.1';
+const gatewayRole = !!publicOrigin && !workerRole && !regionalRole;
+const host = gatewayRole || regionalRole ? '0.0.0.0' : '127.0.0.1';
 if (publicOrigin && !publicOrigin.startsWith('https://')) throw new Error('Configura HTTPS.');
 const publicMethods = new Set(['ping','keepAlive','heartbeat','home','search','detail','audioInfo',
   'mediaDuration','resolve','resolveSmooth','liveChannels','liveCategories','resolveLive','radioStations']);
 const authority = () => host + ':' + port;
-process.env.XUPER_DATA_DIR = path.join(__dirname, 'perfil-web');
+process.env.XUPER_DATA_DIR = workerRole ? fs.mkdtempSync(path.join(require('node:os').tmpdir(),'xuper-session-')) : path.join(__dirname, 'perfil-web');
 fs.mkdirSync(process.env.XUPER_DATA_DIR, { recursive: true });
 process.env.XUPER_FFMPEG_PATH ||= process.platform === 'win32'
   ? path.join(__dirname, 'bin', 'ffmpeg.exe') : '/usr/bin/ffmpeg';
@@ -27,7 +29,11 @@ const server = http.createServer(async (req, res) => {
   const fail = code => res.writeHead(code).end();
   try {
     const origin = publicOrigin || 'http://' + authority();
-    if (publicOrigin && req.url === '/healthz') return res.writeHead(200).end('ok');
+    if ((publicOrigin || regionalRole) && req.url === '/healthz') return res.writeHead(200).end('ok');
+    if (regionalRole) {
+      res.setHeader('Cache-Control','private, no-store');
+      return await regional(req,res,new URL(req.url,origin));
+    }
     if (req.headers.host !== new URL(origin).host) return fail(403);
     if (publicOrigin) {
       res.setHeader('Cache-Control', 'private, no-store');
@@ -38,6 +44,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     const url = new URL(req.url, origin);
+    if (gatewayRole && await gateway(req,res,url)) return;
     const media = publicOrigin && /^\/reproducir\/(proxy|relay)(\/.*)$/.exec(url.pathname);
     if (media) {
       if (media[1] === 'proxy' && !/^\/(?:media|radio|sub|hls)\/[a-f0-9]{24}(?:[./]|$)/.test(media[2])) return fail(403);
@@ -126,8 +133,19 @@ server.on('error', async err => {
   } else console.error(err.message);
   process.exitCode = 1;
 });
-server.once('listening', () => {
-  service = require('./desktop/service.cjs').createService();
+server.once('listening', async () => {
+  if (workerRole) {
+    const cleanup = () => {
+      service?.close();
+      fs.rmSync(process.env.XUPER_DATA_DIR,{recursive:true,force:true});
+    };
+    process.once('exit',cleanup);
+    process.once('disconnect',()=>process.exit(0));
+    try { await verifyExit(); }
+    catch (err) { console.error('Salida regional:',err.message); process.exit(1); }
+  }
+  if (!gatewayRole && !regionalRole) service = require('./desktop/service.cjs').createService();
+  if (workerRole) process.send({port:server.address().port});
   console.log('Xuper Web disponible en http://' + authority());
   openBrowser();
 });

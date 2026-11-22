@@ -1,5 +1,9 @@
 **
 !server.cjs
+!regional.cjs
+!proxychains.conf
+!test/
+!test/egress.cjs
 !desktop/
 !desktop/service.cjs
 !service/
