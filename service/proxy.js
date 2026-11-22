@@ -820,9 +820,14 @@ function fromBase64Url(value) {
   return new Buffer(raw, 'base64').toString('utf8');
 }
 
+var manifestSecret = crypto.randomBytes(32);
+function manifestSignature(token, encoded) {
+  return crypto.createHmac('sha256', manifestSecret).update(token + '/' + encoded).digest('hex');
+}
 function hlsChildUrl(token, manifestUrl, reference) {
   if (!reference || reference.indexOf('data:') === 0) { return reference; }
-  return baseUrl() + '/hls/' + token + '/' + base64Url(urlmod.resolve(manifestUrl, reference));
+  var encoded = base64Url(urlmod.resolve(manifestUrl, reference));
+  return baseUrl() + '/hls/' + token + '/' + encoded + '?sig=' + manifestSignature(token, encoded);
 }
 
 /* Algunos canales en vivo numeran mal su lista: al recargarla, el contador
@@ -1757,6 +1762,9 @@ function handler(req, res) {
   }
   var hls = /^\/hls\/([a-f0-9]{24})\/([A-Za-z0-9_-]+)$/.exec((req.url || '').split('?')[0]);
   if (hls) {
+    if (urlmod.parse(req.url, true).query.sig !== manifestSignature(hls[1], hls[2])) {
+      res.writeHead(403); res.end(); return;
+    }
     var hlsEntry = tokens[hls[1]];
     if (!hlsEntry) {
       res.writeHead(410, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });

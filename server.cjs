@@ -10,11 +10,9 @@ let port = firstPort;
 const publicUrl = process.env.RENDER_EXTERNAL_URL;
 const publicOrigin = publicUrl && new URL(publicUrl).origin;
 const host = publicOrigin ? '0.0.0.0' : '127.0.0.1';
-if (publicOrigin && (!publicOrigin.startsWith('https://') || !process.env.XUPER_WEB_PASSWORD || process.env.XUPER_WEB_PASSWORD.length < 16))
-  throw new Error('Configura HTTPS y XUPER_WEB_PASSWORD con al menos 16 caracteres.');
-const crypto = require('node:crypto');
-const digest = value => crypto.createHash('sha256').update(value).digest();
-const expectedAuth = publicOrigin && digest('Basic ' + Buffer.from('xuper:' + process.env.XUPER_WEB_PASSWORD).toString('base64'));
+if (publicOrigin && !publicOrigin.startsWith('https://')) throw new Error('Configura HTTPS.');
+const publicMethods = new Set(['ping','keepAlive','heartbeat','home','search','detail','audioInfo',
+  'mediaDuration','resolve','resolveSmooth','liveChannels','liveCategories','resolveLive','radioStations']);
 const authority = () => host + ':' + port;
 process.env.XUPER_DATA_DIR = path.join(__dirname, 'perfil-web');
 fs.mkdirSync(process.env.XUPER_DATA_DIR, { recursive: true });
@@ -36,16 +34,14 @@ const server = http.createServer(async (req, res) => {
       res.setHeader('Referrer-Policy', 'same-origin');
       res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
       if (req.headers['sec-fetch-site'] === 'cross-site' && req.headers['sec-fetch-mode'] !== 'navigate') return fail(403);
-      if (!crypto.timingSafeEqual(expectedAuth, digest(req.headers.authorization || ''))) {
-        res.setHeader('WWW-Authenticate', 'Basic realm="Xuper Web", charset="UTF-8"');
-        return fail(401);
-      }
     }
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     const url = new URL(req.url, origin);
     const media = publicOrigin && /^\/reproducir\/(proxy|relay)(\/.*)$/.exec(url.pathname);
     if (media) {
+      if (media[1] === 'proxy' && !/^\/(?:media|radio|sub|hls)\/[a-f0-9]{24}(?:[./]|$)/.test(media[2])) return fail(403);
+      if (media[1] === 'relay' && !/^\/s\/[a-f0-9]+\.mp4$/.test(media[2])) return fail(403);
       if (!['GET','HEAD'].includes(req.method)) return fail(405);
       if (req.headers['sec-fetch-site'] === 'cross-site') return fail(403);
       const target = media[1] === 'relay' ? require('./service/ffmpeg-relay') : require('./service/proxy');
@@ -69,6 +65,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method !== 'POST' || req.headers.origin !== origin ||
           req.headers['content-type'] !== 'application/json') return fail(403);
       const method = url.pathname.slice(5);
+      if (publicOrigin && !publicMethods.has(method)) return fail(403);
       if (!service.methods.includes(method)) return fail(404);
       const chunks = [];
       let size = 0;
@@ -80,6 +77,9 @@ const server = http.createServer(async (req, res) => {
       const payload = JSON.parse(Buffer.concat(chunks).toString());
       if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return fail(400);
       const result = await service.call(method, payload, payload.background === true ? 180000 : undefined);
+      if (publicOrigin && method.startsWith('resolve') && result.returnValue) {
+        for (const key of ['headers','backupUrls','url']) delete result[key];
+      }
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(result));
     }
