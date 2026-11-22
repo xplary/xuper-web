@@ -1,0 +1,7 @@
+{
+  "base_url": "https://lamoviebot.tvymas.workers.dev",
+  "catalog_path": "/generos/peliculas/suspense?page=1",
+  "series_catalog_path": "/generos/series/comedia?page=1",
+  "search_path": "/buscar",
+  "direct_media_hosts": ["vimeos.net", "vimeos.zip"]
+}

@@ -1,0 +1,11 @@
+**
+!server.cjs
+!desktop/
+!desktop/service.cjs
+!service/
+!service/**
+!ui/
+!ui/**
+!LICENSE
+!licenses/
+!licenses/**
