@@ -4,6 +4,8 @@ La dirección pública sigue siendo la del servicio en Render. Cada petición a 
 
 ## Opción con VPN dentro de Render
 
+Para el perfil de México, guarda el contenido original descargado como archivo secreto `wireguard.conf` en Render y despliega. El contenedor detecta el archivo, añade el listener SOCKS5 desde `wireproxy.ini` y usa los valores predeterminados MX para la salida, PE para visitantes y dos sesiones. Las variables configuradas explícitamente en el panel tienen prioridad. Si tenías `XUPER_EXIT_COUNTRY=PE`, cámbiala a `MX`. Renueva el archivo secreto cuando venza el perfil y vuelve a desplegar. Para una configuración manual con otro país, sigue los pasos siguientes.
+
 Esta opción usa solo la instancia de Render y un servicio WireGuard con una salida regional admitida por el proveedor. El operador de la VPN debe proporcionar una configuración WireGuard exportable, permitir tráfico desde servidores y admitir el volumen de vídeo previsto. El país de salida y los países de los visitantes se configuran por separado.
 
 1. En Render abre **Environment → Secret Files → Add Secret File**. Nómbralo `wireproxy.conf`. Copia las secciones `[Interface]` y `[Peer]` del perfil WireGuard de tu servicio VPN, con la dirección del túnel, DNS, claves y endpoint que te haya asignado. Mantén las claves dentro de Render.

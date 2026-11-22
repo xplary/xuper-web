@@ -2,6 +2,7 @@
 !server.cjs
 !regional.cjs
 !proxychains.conf
+!wireproxy.ini
 !test/
 !test/egress.cjs
 !desktop/

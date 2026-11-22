@@ -9,11 +9,15 @@ const path = require('node:path');
 const cookie = '__Host-xuper-session';
 const workerRole = process.env.XUPER_ROLE === 'worker' && !!process.send;
 const regionalRole = process.env.XUPER_ROLE === 'regional';
-const vpn = process.env.XUPER_EGRESS === 'wireguard';
+const fs = require('node:fs');
+const rawProfile = fs.existsSync('/etc/secrets/wireguard.conf');
+const hasProfile = rawProfile || fs.existsSync('/etc/secrets/wireproxy.conf');
+const vpn = process.env.XUPER_EGRESS ? process.env.XUPER_EGRESS === 'wireguard'
+  : process.env.RENDER === 'true' && !regionalRole && hasProfile;
 const secret = process.env.XUPER_REGIONAL_SECRET || (vpn ? crypto.randomBytes(32).toString('hex') : '');
 const countries = new Set((process.env.XUPER_COUNTRIES || 'PE').split(',').map(s => s.trim().toUpperCase()));
 const workers = new Map();
-const maxSessions = Number(process.env.XUPER_MAX_SESSIONS || 8);
+const maxSessions = Number(process.env.XUPER_MAX_SESSIONS || 2);
 if ((regionalRole || vpn) && (!Number.isSafeInteger(maxSessions) || maxSessions < 1 || secret.length < 32))
   throw new Error('Revisa XUPER_MAX_SESSIONS y XUPER_REGIONAL_SECRET (mínimo 32 caracteres).');
 
@@ -131,7 +135,8 @@ if (regionalRole || (vpn && !workerRole)) {
   },60000).unref();
 }
 if (vpn && !workerRole) {
-  const client = spawn('wireproxy',['-s','-c','/etc/secrets/wireproxy.conf'],{stdio:'ignore'});
+  const config = rawProfile ? path.join(__dirname,'wireproxy.ini') : '/etc/secrets/wireproxy.conf';
+  const client = spawn('wireproxy',['-s','-c',config],{stdio:'ignore'});
   const stopped = ()=>{ console.error('WireGuard no está disponible. Revisa el archivo secreto wireproxy.conf.'); process.exit(1); };
   client.once('exit',stopped);
   client.once('error',stopped);
@@ -143,7 +148,7 @@ async function verifyExit() {
     throw new Error('No se cargó el transporte regional.');
   const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace',{signal:AbortSignal.timeout(10000),redirect:'error'});
   const country = /^loc=([A-Z]{2})$/m.exec(await response.text())?.[1];
-  if (!response.ok || country !== (process.env.XUPER_EXIT_COUNTRY || 'PE'))
+  if (!response.ok || country !== (process.env.XUPER_EXIT_COUNTRY || 'MX'))
     throw new Error('El país de salida del servicio no coincide con el configurado.');
 }
 module.exports = {workerRole,regionalRole,gateway,regional,verifyExit};
