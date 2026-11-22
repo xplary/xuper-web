@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="616" height="144" viewBox="0 0 616 144" role="img" aria-labelledby="title">
+  <title id="title">Xuper Web</title>
+  <defs>
+    <linearGradient id="ember" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#ffae61"/>
+      <stop offset="1" stop-color="#ff5147"/>
+    </linearGradient>
+  </defs>
+  <rect width="616" height="144" rx="26" fill="#131319"/>
+  <g transform="translate(42 30)">
+    <path fill="#ff634c" d="M0 4h23l52 76H52z"/>
+    <path fill="url(#ember)" d="M52 4h23L23 80H0z"/>
+    <path fill="#ffba79" d="M77 31l17 11-17 11z"/>
+  </g>
+  <text x="158" y="94" fill="#fff6ed" font-family="Verdana, sans-serif" font-size="70" font-weight="bold" letter-spacing="-4">Xuper</text>
+  <rect x="412" y="42" width="150" height="64" rx="32" fill="#302120"/>
+  <text x="487" y="85" text-anchor="middle" fill="#ffac78" font-family="Verdana, sans-serif" font-size="31" font-weight="bold" letter-spacing="2">WEB</text>
+</svg>
