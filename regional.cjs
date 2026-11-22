@@ -72,10 +72,16 @@ async function gateway(req, res, url) {
     res.setHeader('Set-Cookie',cookie+'='+id+'.'+sign(id)+'; Path=/; Secure; HttpOnly; SameSite=Lax');
   }
   if (!/^\/(api|reproducir)\//.test(url.pathname)) return false;
-  if (!id) { error(res,403,'Vuelve a abrir la página de inicio.'); return true; }
   if (url.pathname.startsWith('/api/') && (req.method !== 'POST' || req.headers.origin !== url.origin)) {
     error(res,403,'Solicitud no permitida.'); return true;
   }
+  // Public catalogue reads already use one shared worker. A TV need not
+  // retain a cookie to browse, even after restoring a cached home page.
+  if (!id && sharedRoute(url.pathname)) {
+    id = crypto.randomBytes(16).toString('hex');
+    res.setHeader('Set-Cookie',cookie+'='+id+'.'+sign(id)+'; Path=/; Secure; HttpOnly; SameSite=Lax');
+  }
+  if (!id) { error(res,403,'Vuelve a abrir la página de inicio.'); return true; }
   if (vpn) {
     await serveSession(req,res,url,id);
     return true;
@@ -112,10 +118,12 @@ async function regional(req,res,url) {
 function publicAddress() {
   return regionalRole ? process.env.XUPER_PUBLIC_ORIGIN : process.env.RENDER_EXTERNAL_URL;
 }
+function sharedRoute(pathname) {
+  return /^\/api\/(ping|heartbeat|keepAlive|home|search|detail|audioInfo|liveChannels|liveCategories|radioStations)$/.test(pathname)
+    || pathname.startsWith('/reproducir/proxy/radio/');
+}
 async function serveSession(req,res,url,id) {
-  // Catalogue and liveness requests never allocate a personal player.
-  const shared = /^\/api\/(ping|heartbeat|keepAlive|home|search|detail|audioInfo|liveChannels|liveCategories|radioStations)$/.test(url.pathname)
-    || url.pathname.startsWith('/reproducir/proxy/radio/');
+  const shared = sharedRoute(url.pathname);
   if (shared) id = 'catalogue';
   let entry = workers.get(id);
   if (!entry && !url.pathname.startsWith('/api/')) return error(res,410,'La sesión ha caducado.');
